@@ -12,10 +12,14 @@ def validate_token(token):
     client_id = "87cbd10b-1303-4056-a899-27bd61691211"
     jwks_url = f"https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys"
 
-    # Log unverified token (optional but helpful)
+    # Log unverified token
     unverified = jwt.decode(token, options={"verify_signature": False})
-    logging.info(f"🪪 Unverified token: {json.dumps(unverified, indent=2)}")
+    logging.info("🔍 Unverified token contents:\n%s", json.dumps(unverified, indent=2))
 
+    # Specifically log the 'aud' claim
+    logging.info("🎯 Token Audience (aud): %s", unverified.get("aud"))
+
+    # Load signing key and decode with verification
     jwk_client = PyJWKClient(jwks_url)
     signing_key = jwk_client.get_signing_key_from_jwt(token)
 
