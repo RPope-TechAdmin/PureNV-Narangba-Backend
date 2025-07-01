@@ -6,6 +6,10 @@ import json
 import jwt
 from jwt import PyJWKClient
 
+import pkg_resources
+logging.info(f"📦 Installed packages: {[pkg.key for pkg in pkg_resources.working_set]}")
+
+
 # 🔐 Token validation
 def validate_token(token):
     tenant_id = "655e497b-f0e8-44ed-98fb-77680dd02944"
