@@ -23,7 +23,7 @@ def validate_token(token):
         token,
         signing_key.key,
         algorithms=["RS256"],
-        audience=f"api://{client_id}",
+        audience=client_id,
         issuer="https://sts.windows.net/655e497b-f0e8-44ed-98fb-77680dd02944/"
     )
     return decoded
