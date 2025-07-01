@@ -1,17 +1,18 @@
 import logging
 import azure.functions as func
+import pyodbc
 import os
 import json
 import jwt
 from jwt import PyJWKClient
-import tds
 
 # 🔐 Token validation
 def validate_token(token):
     tenant_id = "655e497b-f0e8-44ed-98fb-77680dd02944"
-    client_id = "dc94dd83-ded3-4908-8f4d-1f8fa323abf7"
+    client_id = "87cbd10b-1303-4056-a899-27bd61691211"
     jwks_url = f"https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys"
 
+    # Log unverified token (optional but helpful)
     unverified = jwt.decode(token, options={"verify_signature": False})
     logging.info(f"🪪 Unverified token: {json.dumps(unverified, indent=2)}")
 
@@ -27,22 +28,27 @@ def validate_token(token):
     )
     return decoded
 
-# 🔌 SQL connection using python-tds
+# 🔌 SQL connection using SQL Authentication
 def get_db_connection():
-    return tds.connect(
-        server=os.environ['SQL_SERVER'],  # e.g. yourserver.database.windows.net
-        database=os.environ['SQL_DB'],
-        user=os.environ['SQL_USER'],
-        password=os.environ['SQL_PASSWORD'],
-        port=1433,
-        use_encryption=True,
-        validate_cert=False  # Set True if your cert is trusted
+    connection_string = (
+        "Driver={ODBC Driver 18 for SQL Server};"
+        f"Server={os.environ['SQL_SERVER']};"
+        f"Database={os.environ['SQL_DB']};"
+        f"UID={os.environ['SQL_USER']};"
+        f"PWD={os.environ['SQL_PASSWORD']};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Authentication=SqlPassword;"
     )
 
-# 📥 Azure Function trigger
+    conn = pyodbc.connect(connection_string)
+    return conn
+
+# 📥 Main Azure Function trigger
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("🔁 Processing feedback submission")
 
+    # Handle CORS preflight
     if req.method == "OPTIONS":
         return func.HttpResponse(
             status_code=204,
@@ -54,6 +60,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             }
         )
 
+    # Get and validate Bearer token
     auth_header = req.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return func.HttpResponse(
@@ -74,6 +81,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
+    # Parse body
     try:
         data = req.get_json()
         logging.info(f"📦 Parsed request body: {json.dumps(data)}")
@@ -94,10 +102,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
+    # Save to DB
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES (%s, %s)", (name, feedback))
+        cursor.execute("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES (?, ?)", (name, feedback))
         conn.commit()
         cursor.close()
         conn.close()
