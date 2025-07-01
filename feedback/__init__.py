@@ -93,6 +93,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     try:
+        logging.info(f"🔌 Connecting to DB with host: {os.environ.get('SQL_SERVER')}")
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES (%s, %s)", (name, feedback))
@@ -107,6 +108,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             status_code=500,
             mimetype="application/json"
         )
+
 
     return func.HttpResponse(
         json.dumps({"code": 200, "message": "Feedback submitted successfully."}),
