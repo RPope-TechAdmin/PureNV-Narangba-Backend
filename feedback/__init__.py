@@ -24,12 +24,16 @@ def validate_token(token):
     logging.info("🔐 Validating token with audience: api://%s", client_id)
 
     decoded = jwt.decode(
-        token,
-        signing_key.key,
-        algorithms=["RS256"],
-        audience="api://87cbd10b-1303-4056-a899-27bd61691211",  # ✅ Must match aud exactly
-        issuer=f"https://sts.windows.net/{tenant_id}/"
-    )
+    token,
+    signing_key.key,
+    algorithms=["RS256"],
+    audience=[
+        f"api://{client_id}",
+        client_id
+    ],
+    issuer=f"https://sts.windows.net/{tenant_id}/"
+)
+
     return decoded
 
 # 🔌 SQL connection using SQL Authentication
