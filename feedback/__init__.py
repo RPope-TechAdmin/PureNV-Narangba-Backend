@@ -1,6 +1,6 @@
 import logging
 import azure.functions as func
-import pyodbc
+import pymssql
 import os
 import json
 import jwt
@@ -12,7 +12,6 @@ def validate_token(token):
     client_id = "dc94dd83-ded3-4908-8f4d-1f8fa323abf7"
     jwks_url = f"https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys"
 
-    # Log unverified token (optional but helpful)
     unverified = jwt.decode(token, options={"verify_signature": False})
     logging.info(f"🪪 Unverified token: {json.dumps(unverified, indent=2)}")
 
@@ -28,27 +27,20 @@ def validate_token(token):
     )
     return decoded
 
-# 🔌 SQL connection using SQL Authentication
+# 🔌 SQL connection using pymssql
 def get_db_connection():
-    connection_string = (
-        "Driver={ODBC Driver 18 for SQL Server};"
-        f"Server={os.environ['SQL_SERVER']};"
-        f"Database={os.environ['SQL_DB']};"
-        f"UID={os.environ['SQL_USER']};"
-        f"PWD={os.environ['SQL_PASSWORD']};"
-        "Encrypt=yes;"
-        "TrustServerCertificate=no;"
-        "Authentication=SqlPassword;"
+    conn = pymssql.connect(
+        server=os.environ['SQL_SERVER'],
+        user=os.environ['SQL_USER'],
+        password=os.environ['SQL_PASSWORD'],
+        database=os.environ['SQL_DB']
     )
-
-    conn = pyodbc.connect(connection_string)
     return conn
 
 # 📥 Main Azure Function trigger
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("🔁 Processing feedback submission")
 
-    # Handle CORS preflight
     if req.method == "OPTIONS":
         return func.HttpResponse(
             status_code=204,
@@ -60,7 +52,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             }
         )
 
-    # Get and validate Bearer token
     auth_header = req.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return func.HttpResponse(
@@ -81,7 +72,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
-    # Parse body
     try:
         data = req.get_json()
         logging.info(f"📦 Parsed request body: {json.dumps(data)}")
@@ -102,11 +92,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
-    # Save to DB
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES (?, ?)", (name, feedback))
+        cursor.execute("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES (%s, %s)", (name, feedback))
         conn.commit()
         cursor.close()
         conn.close()
