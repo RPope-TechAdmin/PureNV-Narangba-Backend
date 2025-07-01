@@ -21,6 +21,8 @@ def validate_token(token):
     jwk_client = PyJWKClient(jwks_url)
     signing_key = jwk_client.get_signing_key_from_jwt(token)
 
+    logging.info("🔐 Validating token with audience: api://%s", client_id)
+
     decoded = jwt.decode(
         token,
         signing_key.key,
