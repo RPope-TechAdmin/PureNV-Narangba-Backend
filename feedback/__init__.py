@@ -15,8 +15,6 @@ def validate_token(token):
     # Log unverified token
     unverified = jwt.decode(token, options={"verify_signature": False})
     logging.info("🔍 Unverified token contents:\n%s", json.dumps(unverified, indent=2))
-
-    # Specifically log the 'aud' claim
     logging.info("🎯 Token Audience (aud): %s", unverified.get("aud"))
 
     # Load signing key and decode with verification
@@ -27,8 +25,8 @@ def validate_token(token):
         token,
         signing_key.key,
         algorithms=["RS256"],
-        audience=f"api://{client_id}",
-        issuer="https://sts.windows.net/655e497b-f0e8-44ed-98fb-77680dd02944/"
+        audience=f"api://{client_id}",  # ✅ Must match aud exactly
+        issuer=f"https://sts.windows.net/{tenant_id}/"
     )
     return decoded
 
@@ -44,7 +42,6 @@ def get_db_connection():
         "TrustServerCertificate=no;"
         "Authentication=SqlPassword;"
     )
-
     conn = pyodbc.connect(connection_string)
     return conn
 
@@ -75,8 +72,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     token = auth_header.split(" ")[1]
     try:
+        logging.info("🚨 Starting token validation")
         claims = validate_token(token)
-        logging.info(f"✅ Token validated: {json.dumps(claims)}")
+        logging.info("✅ Token validated:\n%s", json.dumps(claims, indent=2))
     except Exception as e:
         logging.exception("❌ Token validation failed")
         return func.HttpResponse(
@@ -88,7 +86,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     # Parse body
     try:
         data = req.get_json()
-        logging.info(f"📦 Parsed request body: {json.dumps(data)}")
+        logging.info("📦 Parsed request body:\n%s", json.dumps(data))
     except ValueError:
         return func.HttpResponse(
             json.dumps({"error": "Invalid JSON"}),
