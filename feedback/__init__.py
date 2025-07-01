@@ -1,14 +1,10 @@
 import logging
 import azure.functions as func
-import pymssql
 import os
 import json
 import jwt
 from jwt import PyJWKClient
-
-import pkg_resources
-logging.info(f"📦 Installed packages: {[pkg.key for pkg in pkg_resources.working_set]}")
-
+import tds
 
 # 🔐 Token validation
 def validate_token(token):
@@ -31,17 +27,19 @@ def validate_token(token):
     )
     return decoded
 
-# 🔌 SQL connection using pymssql
+# 🔌 SQL connection using python-tds
 def get_db_connection():
-    conn = pymssql.connect(
-        server=os.environ['SQL_SERVER'],
+    return tds.connect(
+        server=os.environ['SQL_SERVER'],  # e.g. yourserver.database.windows.net
+        database=os.environ['SQL_DB'],
         user=os.environ['SQL_USER'],
         password=os.environ['SQL_PASSWORD'],
-        database=os.environ['SQL_DB']
+        port=1433,
+        use_encryption=True,
+        validate_cert=False  # Set True if your cert is trusted
     )
-    return conn
 
-# 📥 Main Azure Function trigger
+# 📥 Azure Function trigger
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("🔁 Processing feedback submission")
 
@@ -97,7 +95,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     try:
-        logging.info(f"🔌 Connecting to DB with host: {os.environ.get('SQL_SERVER')}")
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES (%s, %s)", (name, feedback))
@@ -112,7 +109,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             status_code=500,
             mimetype="application/json"
         )
-
 
     return func.HttpResponse(
         json.dumps({"code": 200, "message": "Feedback submitted successfully."}),

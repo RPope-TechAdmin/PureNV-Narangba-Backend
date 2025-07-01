@@ -2,7 +2,7 @@ azure-functions
 azure-identity
 pandas
 openpyxl
-pymssql
+pytds
 requests_toolbelt
 xlrd
 pyJWT
