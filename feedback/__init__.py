@@ -44,43 +44,39 @@ def validate_token(token):
 )
     return decoded
 
-# 🔌 SQL connection using SQL Authentication
-def get_db_connection():
-    connection_string = (
-        "Driver={ODBC Driver 18 for SQL Server};"
-        f"Server={os.environ['SQL_SERVER']};"
-        f"Database={os.environ['SQL_DB']};"
-        f"UID={os.environ['SQL_USER']};"
-        f"PWD={os.environ['SQL_PASSWORD']};"
-        "Encrypt=yes;"
-        "TrustServerCertificate=no;"
-        "Authentication=SqlPassword;"
-    )
-    conn = pyodbc.connect(connection_string)
-    return conn
+# 🔌 SQLAlchemy + pytds connection
+def get_db_engine():
+    username = os.environ["SQL_USER"]
+    password = os.environ["SQL_PASSWORD"]
+    server = os.environ["SQL_SERVER"]
+    db = os.environ["SQL_DB"]
 
-# 📥 Main Azure Function trigger
+    engine = create_engine(
+        f"mssql+pytds://{username}:{password}@{server}/{db}",
+        connect_args={"autocommit": True}
+    )
+    return engine
+
+# 📥 Azure Function trigger
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("🔁 Processing feedback submission")
 
-    # Handle CORS preflight
+    # CORS
     if req.method == "OPTIONS":
         return func.HttpResponse(
             status_code=204,
             headers=cors_headers
         )
 
-    # Get and validate Bearer token
+    # Token check
     auth_header = req.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return func.HttpResponse(
-            json.dumps({"error": "Unauthorized", "details": str(e)}),
+            json.dumps({"error": "Missing or invalid Authorization header"}),
             status_code=401,
-            headers=cors_headers,
             mimetype="application/json"
         )
 
-    
     token = auth_header.split(" ")[1]
     try:
         logging.info("🚨 Starting token validation")
@@ -94,7 +90,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
-    # Parse body
+    # Parse JSON
     try:
         data = req.get_json()
         logging.info("📦 Parsed request body:\n%s", json.dumps(data))
@@ -115,14 +111,14 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
-    # Save to DB
+    # Save feedback
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES (?, ?)", (name, feedback))
-        conn.commit()
-        cursor.close()
-        conn.close()
+        engine = get_db_engine()
+        with engine.connect() as conn:
+            conn.execute(
+                text("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES (:name, :feedback)"),
+                {"name": name, "feedback": feedback}
+            )
         logging.info("✅ Feedback saved to SQL database")
     except Exception as e:
         logging.exception("❌ Database error")

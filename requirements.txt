@@ -6,3 +6,6 @@ python-tds
 requests_toolbelt
 xlrd
 pyJWT
+requests
+sqlalchemy
+sqlalchemy-pytds
