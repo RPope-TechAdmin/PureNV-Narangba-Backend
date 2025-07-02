@@ -13,6 +13,7 @@ logging.info("🎯 FULL CLAIMS:\n%s", json.dumps(claims, indent=2))
 def validate_token(token):
     tenant_id = "655e497b-f0e8-44ed-98fb-77680dd02944"
     client_id = "87cbd10b-1303-4056-a899-27bd61691211"
+    audience = f"api://{client_id}"
     jwks_url = f"https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys"
 
     # Log unverified token
@@ -32,7 +33,7 @@ def validate_token(token):
     token,
     signing_key.key,
     algorithms=["RS256"],
-    audience=f"api://{client_id}",
+    audience=audience,
     issuer=f"https://sts.windows.net/{tenant_id}/"
 )
     return decoded
