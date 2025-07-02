@@ -6,6 +6,9 @@ import json
 import jwt
 from jwt import PyJWKClient
 
+logging.info("🎯 FULL CLAIMS:\n%s", json.dumps(claims, indent=2))
+
+
 # 🔐 Token validation
 def validate_token(token):
     tenant_id = "655e497b-f0e8-44ed-98fb-77680dd02944"
