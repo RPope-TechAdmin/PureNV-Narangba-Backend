@@ -8,6 +8,12 @@ from jwt import PyJWKClient
 
 logging.info("🎯 FULL CLAIMS:\n%s", json.dumps(claims, indent=2))
 
+cors_headers={
+                "Access-Control-Allow-Origin": "https://victorious-pond-02e3be310.2.azurestaticapps.net",
+                "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
+                "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept",
+                "Access-Control-Max-Age": "86400"
+            }
 
 # 🔐 Token validation
 def validate_token(token):
@@ -61,23 +67,20 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     if req.method == "OPTIONS":
         return func.HttpResponse(
             status_code=204,
-            headers={
-                "Access-Control-Allow-Origin": "https://victorious-pond-02e3be310.2.azurestaticapps.net",
-                "Access-Control-Allow-Methods": "POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept",
-                "Access-Control-Max-Age": "86400"
-            }
+            headers=cors_headers
         )
 
     # Get and validate Bearer token
     auth_header = req.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return func.HttpResponse(
-            json.dumps({"error": "Missing or invalid Authorization header"}),
+            json.dumps({"error": "Unauthorized", "details": str(e)}),
             status_code=401,
+            headers=cors_headers,
             mimetype="application/json"
         )
 
+    
     token = auth_header.split(" ")[1]
     try:
         logging.info("🚨 Starting token validation")
