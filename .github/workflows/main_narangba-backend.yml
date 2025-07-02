@@ -78,6 +78,6 @@ jobs:
         id: deploy-to-function
         with:
           app-name: 'Narangba-Backend'
-          slot-name: 'Production'
+          slot-name: 'narangba'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           
