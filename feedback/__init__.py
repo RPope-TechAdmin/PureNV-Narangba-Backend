@@ -22,6 +22,8 @@ def validate_token(token):
     signing_key = jwk_client.get_signing_key_from_jwt(token)
 
     logging.info("🔐 Validating token with audience: api://%s", client_id)
+    logging.info(f"Token claims: {json.dumps(claims)}")
+    logging.info(f"Token scopes: {claims.get('scp')}")
 
     decoded = jwt.decode(
     token,
