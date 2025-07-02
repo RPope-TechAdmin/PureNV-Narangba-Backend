@@ -6,6 +6,32 @@ import json
 import jwt
 from jwt import PyJWKClient
 
+# 🔐 Token validation
+def validate_token(token):
+    tenant_id = "655e497b-f0e8-44ed-98fb-77680dd02944"
+    client_id = "87cbd10b-1303-4056-a899-27bd61691211"
+    jwks_url = f"https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys"
+
+    # Log unverified token
+    unverified = jwt.decode(token, options={"verify_signature": False})
+    logging.info("🔍 Unverified token contents:\n%s", json.dumps(unverified, indent=2))
+    logging.info("🎯 Token Audience (aud): %s", unverified.get("aud"))
+
+    # Load signing key and decode with verification
+    jwk_client = PyJWKClient(jwks_url)
+    signing_key = jwk_client.get_signing_key_from_jwt(token)
+
+    logging.info("🔐 Validating token with audience: api://%s", client_id)
+
+    decoded = jwt.decode(
+    token,
+    signing_key.key,
+    algorithms=["RS256"],
+    audience="api://87cbd10b-1303-4056-a899-27bd61691211",
+    issuer=f"https://sts.windows.net/{tenant_id}/"
+)
+    return decoded
+
 # 🔌 SQL connection using SQL Authentication
 def get_db_connection():
     connection_string = (
@@ -35,6 +61,28 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept",
                 "Access-Control-Max-Age": "86400"
             }
+        )
+
+    # Get and validate Bearer token
+    auth_header = req.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return func.HttpResponse(
+            json.dumps({"error": "Missing or invalid Authorization header"}),
+            status_code=401,
+            mimetype="application/json"
+        )
+
+    token = auth_header.split(" ")[1]
+    try:
+        logging.info("🚨 Starting token validation")
+        claims = validate_token(token)
+        logging.info("✅ Token validated:\n%s", json.dumps(claims, indent=2))
+    except Exception as e:
+        logging.exception("❌ Token validation failed")
+        return func.HttpResponse(
+            json.dumps({"error": "Unauthorized", "details": str(e)}),
+            status_code=401,
+            mimetype="application/json"
         )
 
     # Parse body
