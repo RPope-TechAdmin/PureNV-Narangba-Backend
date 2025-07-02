@@ -1,6 +1,5 @@
 import logging
 import azure.functions as func
-import pyodbc
 import os
 import json
 import jwt
