@@ -44,11 +44,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         db = os.environ["SQL_DB"]
 
         connection_string = (
-            f"mssql+pyodbc://{username}:{password}@{server}:1433/{db}"
-            "?driver=ODBC+Driver+18+for+SQL+Server"
-            "&encrypt=yes"
-            "&trustServerCertificate=no"
-        )
+        f"mssql+pyodbc://{username}:{password}@{server}:1433/{db}"
+        "?driver=ODBC+Driver+17+for+SQL+Server"
+        "&encrypt=yes"
+        "&trustServerCertificate=no"
+    )
+
 
         engine = create_engine(connection_string, connect_args={"autocommit": True})
         with engine.connect() as conn:
