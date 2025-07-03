@@ -37,10 +37,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     try:
-
+        username = os.environ["SQL_USER"]
+        password = os.environ["SQL_PASSWORD"]
+        server = os.environ["SQL_SERVER"]
+        db = os.environ["SQL_DB"]
 
         engine = create_engine(
-            f"mssql+pytds://{os.environ['SQL_USER']}:{os.environ['SQL_PASSWORD']}@{os.environ['SQL_SERVER']}/{os.environ['SQL_DB']}?encrypt=True",
+            f"mssql+pytds://{username}:{password}@{server}/{db}?encrypt=True",
             connect_args={"autocommit": True}
         )
         with engine.connect() as conn:
