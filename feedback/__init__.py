@@ -4,6 +4,8 @@ import os
 import json
 from sqlalchemy import create_engine, text
 
+logging.info("📦 Deployed site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
+
 cors_headers = {
     "Access-Control-Allow-Origin": "https://victorious-pond-02e3be310.2.azurestaticapps.net",
     "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
