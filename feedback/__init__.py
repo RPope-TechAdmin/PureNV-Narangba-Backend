@@ -4,7 +4,11 @@ import os
 import json
 import jwt
 from jwt import PyJWKClient
+import sys
 
+print(jwt.__version__)
+logging.info("📂 Site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
+logging.info("📦 Python path: %s", sys.path)
 logging.info("🎯 FULL CLAIMS:\n%s", json.dumps(claims, indent=2))
 
 cors_headers={
