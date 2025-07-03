@@ -5,7 +5,7 @@ openpyxl
 python-tds
 requests_toolbelt
 xlrd
-PyJWT==2.8.0
 requests
+cryptography
 sqlalchemy
 sqlalchemy-pytds

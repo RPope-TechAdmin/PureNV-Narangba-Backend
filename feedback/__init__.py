@@ -2,76 +2,87 @@ import logging
 import azure.functions as func
 import os
 import json
-import jwt
-from jwt import PyJWKClient
-from sqlalchemy import create_engine, text
-import sys
+import requests
+import base64
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
 
-print(jwt.__version__)
-logging.info("📂 Site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
-logging.info("📦 Python path: %s", sys.path)
+cors_headers = {
+    "Access-Control-Allow-Origin": "https://victorious-pond-02e3be310.2.azurestaticapps.net",
+    "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept",
+    "Access-Control-Max-Age": "86400"
+}
 
-cors_headers={
-                "Access-Control-Allow-Origin": "https://victorious-pond-02e3be310.2.azurestaticapps.net",
-                "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
-                "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept",
-                "Access-Control-Max-Age": "86400"
-            }
+# Decode JWT parts
+def decode_part(part):
+    padded = part + '=' * (-len(part) % 4)  # pad base64 string
+    return json.loads(base64.urlsafe_b64decode(padded).decode())
 
-# 🔐 Token validation
+# Fetch and cache Microsoft identity public keys
+def get_public_keys(tenant_id):
+    openid_url = f"https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys"
+    res = requests.get(openid_url)
+    res.raise_for_status()
+    return {key["kid"]: key for key in res.json()["keys"]}
+
+# Validate signature using cryptography
+def verify_signature(header, payload, signature, public_key_jwk):
+    # Reconstruct the signed data
+    signed_data = f"{header}.{payload}".encode()
+
+    # Get the modulus and exponent
+    n = int.from_bytes(base64.urlsafe_b64decode(public_key_jwk["n"] + "=="), byteorder="big")
+    e = int.from_bytes(base64.urlsafe_b64decode(public_key_jwk["e"] + "=="), byteorder="big")
+
+    public_numbers = serialization.rsa.RSAPublicNumbers(e, n)
+    pub_key = public_numbers.public_key(default_backend())
+
+    try:
+        pub_key.verify(
+            base64.urlsafe_b64decode(signature + "=="),
+            signed_data,
+            padding.PKCS1v15(),
+            hashes.SHA256()
+        )
+        return True
+    except Exception:
+        return False
+
 def validate_token(token):
     tenant_id = "655e497b-f0e8-44ed-98fb-77680dd02944"
     client_id = "87cbd10b-1303-4056-a899-27bd61691211"
     audience = f"api://{client_id}"
-    jwks_url = f"https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys"
 
-    # Log unverified token
-    unverified = jwt.decode(token, options={"verify_signature": False})
-    logging.info("🔍 Unverified token contents:\n%s", json.dumps(unverified, indent=2))
-    logging.info("🎯 Token Audience (aud): %s", unverified.get("aud"))
+    header_b64, payload_b64, signature_b64 = token.split('.')
 
-    # Load signing key and decode with verification
-    jwk_client = PyJWKClient(jwks_url)
-    signing_key = jwk_client.get_signing_key_from_jwt(token)
+    header = decode_part(header_b64)
+    payload = decode_part(payload_b64)
 
-    logging.info("🔐 Validating token with audience: api://%s", client_id)
-    logging.info(f"Token claims: {json.dumps(claims)}")
-    logging.info(f"Token scopes: {claims.get('scp')}")
+    keys = get_public_keys(tenant_id)
+    kid = header.get("kid")
 
-    decoded = jwt.decode(
-    token,
-    signing_key.key,
-    algorithms=["RS256"],
-    audience=audience,
-    issuer=f"https://sts.windows.net/{tenant_id}/"
-)
-    return decoded
+    if kid not in keys:
+        raise Exception("Key ID not found in public keys")
 
-# 🔌 SQLAlchemy + pytds connection
-def get_db_engine():
-    username = os.environ["SQL_USER"]
-    password = os.environ["SQL_PASSWORD"]
-    server = os.environ["SQL_SERVER"]
-    db = os.environ["SQL_DB"]
+    valid = verify_signature(header_b64, payload_b64, signature_b64, keys[kid])
+    if not valid:
+        raise Exception("Invalid token signature")
 
-    engine = create_engine(
-        f"mssql+pytds://{username}:{password}@{server}/{db}",
-        connect_args={"autocommit": True}
-    )
-    return engine
+    if payload["aud"] != audience:
+        raise Exception("Invalid audience")
 
-# 📥 Azure Function trigger
+    return payload
+
+# Main function trigger
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("🔁 Processing feedback submission")
 
-    # CORS
     if req.method == "OPTIONS":
-        return func.HttpResponse(
-            status_code=204,
-            headers=cors_headers
-        )
+        return func.HttpResponse(status_code=204, headers=cors_headers)
 
-    # Token check
     auth_header = req.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return func.HttpResponse(
@@ -82,9 +93,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     token = auth_header.split(" ")[1]
     try:
-        logging.info("🚨 Starting token validation")
+        logging.info("🚨 Validating token manually")
         claims = validate_token(token)
-        logging.info("✅ Token validated:\n%s", json.dumps(claims, indent=2))
+        logging.info("✅ Token claims:\n%s", json.dumps(claims, indent=2))
     except Exception as e:
         logging.exception("❌ Token validation failed")
         return func.HttpResponse(
@@ -93,7 +104,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
-    # Parse JSON
     try:
         data = req.get_json()
         logging.info("📦 Parsed request body:\n%s", json.dumps(data))
@@ -101,8 +111,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(
             json.dumps({"error": "Invalid JSON"}),
             status_code=400,
-            mimetype="application/json",
-            headers=cors_headers
+            mimetype="application/json"
         )
 
     name = data.get("name")
@@ -115,9 +124,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
-    # Save feedback
     try:
-        engine = get_db_engine()
+        from sqlalchemy import create_engine, text
+        engine = create_engine(
+            f"mssql+pytds://{os.environ['SQL_USER']}:{os.environ['SQL_PASSWORD']}@{os.environ['SQL_SERVER']}/{os.environ['SQL_DB']}",
+            connect_args={"autocommit": True}
+        )
         with engine.connect() as conn:
             conn.execute(
                 text("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES (:name, :feedback)"),
@@ -135,5 +147,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse(
         json.dumps({"code": 200, "message": "Feedback submitted successfully."}),
         status_code=200,
-        mimetype="application/json"
+        mimetype="application/json",
+        headers=cors_headers
     )
