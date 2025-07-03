@@ -2,6 +2,7 @@ import logging
 import azure.functions as func
 import os
 import json
+import pyodbc
 from sqlalchemy import create_engine, text
 
 logging.info("📦 Deployed site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
@@ -42,10 +43,14 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         server = os.environ["SQL_SERVER"]
         db = os.environ["SQL_DB"]
 
-        engine = create_engine(
-            f"mssql+pytds://{username}:{password}@{server}/{db}?encrypt=True",
-            connect_args={"autocommit": True}
+        connection_string = (
+            f"mssql+pyodbc://{username}:{password}@{server}:1433/{db}"
+            "?driver=ODBC+Driver+18+for+SQL+Server"
+            "&encrypt=yes"
+            "&trustServerCertificate=no"
         )
+
+        engine = create_engine(connection_string, connect_args={"autocommit": True})
         with engine.connect() as conn:
             conn.execute(
                 text("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES (:name, :feedback)"),
