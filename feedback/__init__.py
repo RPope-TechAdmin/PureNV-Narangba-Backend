@@ -4,12 +4,12 @@ import os
 import json
 import jwt
 from jwt import PyJWKClient
+from sqlalchemy import create_engine, text
 import sys
 
 print(jwt.__version__)
 logging.info("📂 Site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
 logging.info("📦 Python path: %s", sys.path)
-logging.info("🎯 FULL CLAIMS:\n%s", json.dumps(claims, indent=2))
 
 cors_headers={
                 "Access-Control-Allow-Origin": "https://victorious-pond-02e3be310.2.azurestaticapps.net",
@@ -101,7 +101,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(
             json.dumps({"error": "Invalid JSON"}),
             status_code=400,
-            mimetype="application/json"
+            mimetype="application/json",
+            headers=cors_headers
         )
 
     name = data.get("name")
