@@ -1,10 +1,7 @@
 azure-functions
 azure-identity
-pandas
-openpyxl
 python-tds
 requests_toolbelt
-xlrd
 requests
 cryptography
 sqlalchemy
