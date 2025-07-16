@@ -36,6 +36,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
+    logging.info("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES ({name}, {feedback})")
+
     try:
         username = os.environ["SQL_USER"]
         password = os.environ["SQL_PASSWORD"]
