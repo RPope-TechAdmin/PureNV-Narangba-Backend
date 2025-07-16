@@ -3,7 +3,6 @@ import azure.functions as func
 import os
 import json
 import pymssql
-from sqlalchemy import create_engine, text
 
 logging.info("📦 Deployed site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
 
@@ -46,7 +45,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         with pymssql.connect(server, username, password, db) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
-                text("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES (:name, :feedback)"),
+                ("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES (:name, :feedback)"),
                 {"name": name, "feedback": feedback})
             conn.commit()
 
