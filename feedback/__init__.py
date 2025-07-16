@@ -45,8 +45,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         with pymssql.connect(server, username, password, db) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
-                ("INSERT INTO Narangba.Feedback (Name, Feedback) VALUES (:name, :feedback)"),
-                {"name": name, "feedback": feedback})
+                f"INSERT INTO Narangba.Feedback (Name, Feedback) VALUES ({name}, {feedback})")
             conn.commit()
 
         logging.info("✅ Feedback saved to SQL database")
