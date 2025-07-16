@@ -5,4 +5,4 @@ requests_toolbelt
 requests
 cryptography
 sqlalchemy
-pyodbc
+pymssql
