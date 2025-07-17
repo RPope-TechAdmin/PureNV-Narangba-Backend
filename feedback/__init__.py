@@ -2,6 +2,7 @@ import logging
 import azure.functions as func
 import os
 import json
+import time
 import pymssql
 
 logging.info("📦 Deployed site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
@@ -46,11 +47,20 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         table="[Narangba].[Feedback]"
         variables="[Name], [Feedback]"
 
-        with pymssql.connect(server, username, password, db) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                f"INSERT INTO {table} ({variables}) VALUES ('{name}', '{feedback}');")
-            conn.commit()
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                with pymssql.connect(server, username, password, db) as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute(f"INSERT INTO {table} ({variables}) VALUES ('{name}', '{feedback}');")
+                    conn.commit()
+                break
+            except pymssql.OperationalError as e:
+                if attempt < max_retries - 1:
+                        logging.warning(f"Retrying DB connection in 5 seconds... Attempt {attempt + 1}")
+                        time.sleep(5)
+                else:
+                    raise
 
         logging.info("✅ Feedback saved to SQL database")
     except Exception as e:
