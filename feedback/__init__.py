@@ -43,11 +43,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         password = os.environ["SQL_PASSWORD"]
         server = os.environ["SQL_SERVER"]
         db = os.environ["SQL_DB"]
+        table="[Narangba].[Feedback]"
+        variables="[Name], [Feedback]"
 
         with pymssql.connect(server, username, password, db) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
-                f"INSERT INTO [Narangba].[Feedback] ([Name], [Feedback]) VALUES ({name}, {feedback});")
+                f"INSERT INTO {table} ({variables}) VALUES ('{name}', '{feedback}');")
             conn.commit()
 
         logging.info("✅ Feedback saved to SQL database")
