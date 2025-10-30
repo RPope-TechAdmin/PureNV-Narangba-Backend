@@ -65,7 +65,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         logging.info("✅ Feedback saved to SQL database")
         try:
-            recipient=os.env["FEEDBACK_RECIPIENT"]
+            recipient=os.getenv["FEEDBACK_RECIPIENT"]
             subject="New Feedback for Narangba Dashboard!"
             body=("Hey," \
             "" \
@@ -73,7 +73,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             )
 
             send_email(recipient, subject, body)
-            
+
         except Exception as e:
             logging.exception(f"❌ Error sending email: {e}")
 
