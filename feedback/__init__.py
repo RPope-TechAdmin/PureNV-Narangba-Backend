@@ -20,6 +20,7 @@ cors_headers = {
 def send_email(recipient: str, subject: str, body: str) -> None:
     sender = os.getenv("EMAIL_USER")
     password = os.getenv("EMAIL_PASS")
+    logging.info(f"Retrieved Information: Email = {sender}, Password = {password}")
     if not sender or not password:
         raise EnvironmentError("Missing EMAIL_USER or EMAIL_PASS environment variables")
 
