@@ -3,8 +3,7 @@ azure-identity
 python-tds
 requests_toolbelt
 requests
-cryptography==41.0.7
+cryptography
 sqlalchemy
 pymssql
-sendgrid==6.11.0
-glibc
+

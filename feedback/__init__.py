@@ -4,8 +4,8 @@ import os
 import json
 import time
 import pymssql
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+import smtplib
+from email.message import EmailMessage
 
 logging.info("📦 Deployed site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
 
@@ -16,15 +16,30 @@ cors_headers = {
     "Access-Control-Max-Age": "86400"
 }
 
-def send_email(recipient, subject, body):
-    message = Mail(
-        from_email='rpope785331@gmail.com',
-        to_emails=recipient,
-        subject=subject,
-        plain_text_content=body,
-    )
-    sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
-    sg.send(message)
+def send_email(recipient: str, subject: str, body: str) -> None:
+    """Send email using Gmail SMTP (free)."""
+    sender = os.getenv("EMAIL_USER")
+    password = os.getenv("EMAIL_PASS")
+
+    if not sender or not password:
+        raise EnvironmentError("Missing EMAIL_USER or EMAIL_PASS environment variables")
+
+    msg = EmailMessage()
+    msg["From"] = sender
+    msg["To"] = recipient
+    msg["Subject"] = subject
+    msg.set_content(body)
+
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
+            smtp.starttls()
+            smtp.login(sender, password)
+            smtp.send_message(msg)
+        logging.info(f"✅ Email successfully sent to {recipient}")
+    except Exception as e:
+        logging.exception(f"❌ Failed to send email: {e}")
+        raise
+
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -81,10 +96,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         try:
             recipient="rpope@purenv.au"
             subject="New Feedback for Narangba Dashboard!"
-            body = (
-            "Hey,\n\n"
-            "Congratulations! Someone has uploaded feedback into the Narangba Dashboard.\n"
-            "You should go check it out!"
+            body =  (
+            f"Hello,\n\n"
+            f"A new feedback submission has been added to the Narangba Dashboard.\n\n"
+            f"Name: {name}\n"
+            f"Feedback: {feedback}\n\n"
+            f"Cheers,\nThe Narangba Dashboard Bot"
         )
 
             send_email(recipient, subject, body)
