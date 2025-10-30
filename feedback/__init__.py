@@ -7,6 +7,8 @@ import pymssql
 import smtplib
 from email.message import EmailMessage
 
+logging.info("📦 Deployed site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
+
 cors_headers = {
     "Access-Control-Allow-Origin": "https://victorious-pond-02e3be310.2.azurestaticapps.net",
     "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
@@ -15,9 +17,10 @@ cors_headers = {
 }
 
 def send_email(recipient: str, subject: str, body: str) -> None:
-    sender = os.getenv("EMAIL_USER")
-    eml_pass = os.getenv("EMAIL_PASS")
-
+    sender = "rpope785331@gmail.com"
+    eml_pass = "Red-R0ck6341"
+    logging.info(f"Retrieved Information: Email = {sender}, Password = {eml_pass}")
+  
     if not sender or not eml_pass:
         raise EnvironmentError("Missing EMAIL_USER or EMAIL_PASS environment variables")
 
@@ -31,6 +34,7 @@ def send_email(recipient: str, subject: str, body: str) -> None:
         smtp.starttls()
         smtp.login(sender, eml_pass)
         smtp.send_message(msg)
+
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     if req.method == "OPTIONS":
@@ -55,46 +59,53 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
-    try:
-        sql_user = os.getenv("SQL_USER")
-        sql_password = os.getenv("SQL_PASSWORD")
-        sql_server = os.getenv("SQL_SERVER")
-        sql_db = os.getenv("SQL_DB")
+    logging.info(f"INSERT INTO Narangba.Feedback (Name, Feedback) VALUES ('{name}', '{feedback}')")
 
-        table = "[Narangba].[Feedback]"
-        columns = "[Name], [Feedback]"
+    try:
+        username = os.environ["SQL_USER"]
+        password = os.environ["SQL_PASSWORD"]
+        server = os.environ["SQL_SERVER"]
+        db = os.environ["SQL_DB"]
+        table="[Narangba].[Feedback]"
+        variables="[Name], [Feedback]"
+
+        logging.info(f"Collected Information: Username = {username}, Password = {password}, Server = {server}, DB = {db}")
 
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                with pymssql.connect(sql_server, sql_user, sql_password, sql_db) as conn:
+                with pymssql.connect(server, username, password, db) as conn:
                     with conn.cursor() as cursor:
-                        cursor.execute(
-                            f"INSERT INTO {table} ({columns}) VALUES (%s, %s);",
-                            (name, feedback)
-                        )
+                        cursor.execute(f"INSERT INTO {table} ({variables}) VALUES (%s, %s);", (name, feedback))
                     conn.commit()
                 break
             except pymssql.OperationalError as e:
                 if attempt < max_retries - 1:
-                    logging.warning(f"Retrying DB connection in 5 seconds... Attempt {attempt + 1}")
-                    time.sleep(5)
+                        logging.warning(f"Retrying DB connection in 5 seconds... Attempt {attempt + 1}")
+                        time.sleep(5)
                 else:
                     raise
 
-        recipient = "rpope@purenv.au"
-        subject = "New Feedback for Narangba Dashboard!"
-        body = (
+        logging.info("✅ Feedback saved to SQL database")
+        try:
+            recipient="rpope@purenv.au"
+            subject="New Feedback for Narangba Dashboard!"
+            body = (
             "Hey,\n\n"
             "Congratulations! Someone has uploaded feedback into the Narangba Dashboard.\n"
             "You should go check it out!"
         )
-        send_email(recipient, subject, body)
+
+
+            send_email(recipient, subject, body)
+
+        except Exception as e:
+            logging.exception(f"❌ Error sending email: {e}")
 
     except Exception as e:
-        logging.exception("❌ Server error")
+        logging.exception("❌ Database error")
         return func.HttpResponse(
-            json.dumps({"error": str(e)}),
+            json.dumps({"error": "Server error", "details": str(e)}),
             status_code=500,
             mimetype="application/json"
         )
