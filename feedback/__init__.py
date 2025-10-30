@@ -4,7 +4,9 @@ import os
 import json
 import time
 import pymssql
-from send_email import send_email
+import smtplib
+from email.message import EmailMessage
+
 
 logging.info("📦 Deployed site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
 
@@ -14,6 +16,24 @@ cors_headers = {
     "Access-Control-Allow-Headers": "Content-Type, Accept",
     "Access-Control-Max-Age": "86400"
 }
+
+def send_email(recipient: str, subject: str, body: str) -> None:
+    sender = os.getenv("EMAIL_USER")
+    password = os.getenv("EMAIL_PASS")
+    if not sender or not password:
+        raise EnvironmentError("Missing EMAIL_USER or EMAIL_PASS environment variables")
+
+    msg = EmailMessage()
+    msg["From"] = sender
+    msg["To"] = recipient
+    msg["Subject"] = subject
+    msg.set_content(body)
+
+    with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
+        smtp.starttls()
+        smtp.login(sender, password)
+        smtp.send_message(msg)
+
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     if req.method == "OPTIONS":
