@@ -7,4 +7,4 @@ cryptography
 sqlalchemy
 pymssql
 sendgrid
-GLIBC_2.3
+glibc
