@@ -4,8 +4,8 @@ import os
 import json
 import time
 import pymssql
-import smtplib
-from email.message import EmailMessage
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 logging.info("📦 Deployed site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
 
@@ -15,6 +15,17 @@ cors_headers = {
     "Access-Control-Allow-Headers": "Content-Type, Accept",
     "Access-Control-Max-Age": "86400"
 }
+
+def send_email(recipient, subject, body):
+    message = Mail(
+        from_email='rpope785331@gmail.com',
+        to_emails=recipient,
+        subject=subject,
+        plain_text_content=body,
+    )
+    sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
+    sg.send(message)
+
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     if req.method == "OPTIONS":
@@ -67,6 +78,19 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     raise
 
         logging.info("✅ Feedback saved to SQL database")
+        try:
+            recipient="rpope@purenv.au"
+            subject="New Feedback for Narangba Dashboard!"
+            body = (
+            "Hey,\n\n"
+            "Congratulations! Someone has uploaded feedback into the Narangba Dashboard.\n"
+            "You should go check it out!"
+        )
+
+            send_email(recipient, subject, body)
+
+        except Exception as e:
+            logging.exception(f"❌ Error sending email: {e}")
 
     except Exception as e:
         logging.exception("❌ Database error")
