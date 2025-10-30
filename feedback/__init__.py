@@ -7,10 +7,6 @@ import pymssql
 import smtplib
 from email.message import EmailMessage
 
-sender = os.environ["EMAIL_USER"]
-password = os.environ["EMAIL_PASS"]
-logging.info(f"Retrieved Information: Email = {sender}, Password = {password}")
-    
 logging.info("📦 Deployed site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
 
 cors_headers = {
@@ -21,8 +17,11 @@ cors_headers = {
 }
 
 def send_email(recipient: str, subject: str, body: str) -> None:
-    
-    if not sender or not password:
+    sender = os.environ["EMAIL_USER"]
+    eml_pass = os.environ["EMAIL_PASS"]
+    logging.info(f"Retrieved Information: Email = {sender}, Password = {eml_pass}")
+  
+    if not sender or not eml_pass:
         raise EnvironmentError("Missing EMAIL_USER or EMAIL_PASS environment variables")
 
     msg = EmailMessage()
@@ -33,7 +32,7 @@ def send_email(recipient: str, subject: str, body: str) -> None:
 
     with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
         smtp.starttls()
-        smtp.login(sender, password)
+        smtp.login(sender, eml_pass)
         smtp.send_message(msg)
 
 
@@ -77,7 +76,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             try:
                 with pymssql.connect(server, username, password, db) as conn:
                     with conn.cursor() as cursor:
-                        cursor.execute(f"INSERT INTO {table} ({variables}) VALUES ('{name}', '{feedback}');")
+                        cursor.execute(f"INSERT INTO {table} ({variables}) VALUES (%s, %s);", (name, feedback))
                     conn.commit()
                 break
             except pymssql.OperationalError as e:
@@ -91,10 +90,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         try:
             recipient="rpope@purenv.au"
             subject="New Feedback for Narangba Dashboard!"
-            body=("Hey," \
-            "" \
-            "Congratulations! Someone has uploaded some feedback into the Narangba Dashboard. You should go check it out!"
-            )
+            body = (
+            "Hey,\n\n"
+            "Congratulations! Someone has uploaded feedback into the Narangba Dashboard.\n"
+            "You should go check it out!"
+        )
+
 
             send_email(recipient, subject, body)
 
