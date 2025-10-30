@@ -78,6 +78,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         logging.info(f"Collected Information: Username = {username}, Password = {password}, Server = {server}, DB = {db}")
 
+
         max_retries = 3
         for attempt in range(max_retries):
             try:
