@@ -19,10 +19,11 @@ cors_headers = {
 def send_email(recipient: str, subject: str, body: str) -> None:
     """Send email using Gmail SMTP (free)."""
     sender = os.getenv("FEEDBACK_EMAIL")
-    password = os.getenv("FEEDBACK_PASS")
+    eml_pass = os.getenv("FEEDBACK_PASS")
 
     if not sender or not password:
-        raise EnvironmentError("Missing EMAIL_USER or EMAIL_PASS environment variables")
+        logging.info(f"Email: {sender}, Pass: {password}")
+        raise EnvironmentError("Missing FEEDBACK_EMAIL or FEEDBACK_PASS environment variables")
 
     msg = EmailMessage()
     msg["From"] = sender
@@ -33,7 +34,7 @@ def send_email(recipient: str, subject: str, body: str) -> None:
     try:
         with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
             smtp.starttls()
-            smtp.login(sender, password)
+            smtp.login(sender, eml_pass)
             smtp.send_message(msg)
         logging.info(f"✅ Email successfully sent to {recipient}")
     except Exception as e:
