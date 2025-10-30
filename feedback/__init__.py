@@ -16,26 +16,6 @@ cors_headers = {
     "Access-Control-Max-Age": "86400"
 }
 
-def send_email(recipient: str, subject: str, body: str) -> None:
-    sender = "rpope785331@gmail.com"
-    eml_pass = "Red-R0ck6341"
-    logging.info(f"Retrieved Information: Email = {sender}, Password = {eml_pass}")
-  
-    if not sender or not eml_pass:
-        raise EnvironmentError("Missing EMAIL_USER or EMAIL_PASS environment variables")
-
-    msg = EmailMessage()
-    msg["From"] = sender
-    msg["To"] = recipient
-    msg["Subject"] = subject
-    msg.set_content(body)
-
-    with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
-        smtp.starttls()
-        smtp.login(sender, eml_pass)
-        smtp.send_message(msg)
-
-
 def main(req: func.HttpRequest) -> func.HttpResponse:
     if req.method == "OPTIONS":
         return func.HttpResponse(status_code=204, headers=cors_headers)
@@ -87,20 +67,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     raise
 
         logging.info("✅ Feedback saved to SQL database")
-        try:
-            recipient="rpope@purenv.au"
-            subject="New Feedback for Narangba Dashboard!"
-            body = (
-            "Hey,\n\n"
-            "Congratulations! Someone has uploaded feedback into the Narangba Dashboard.\n"
-            "You should go check it out!"
-        )
-
-
-            send_email(recipient, subject, body)
-
-        except Exception as e:
-            logging.exception(f"❌ Error sending email: {e}")
 
     except Exception as e:
         logging.exception("❌ Database error")
