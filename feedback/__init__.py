@@ -18,8 +18,8 @@ cors_headers = {
 
 def send_email(recipient: str, subject: str, body: str) -> None:
     """Send email using Gmail SMTP (free)."""
-    sender = os.getenv("EMAIL_USER")
-    password = os.getenv("EMAIL_PASS")
+    sender = os.environ["EMAIL_USER"]
+    password = os.environ["EMAIL_PASS"]
 
     if not sender or not password:
         raise EnvironmentError("Missing EMAIL_USER or EMAIL_PASS environment variables")
