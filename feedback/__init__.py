@@ -18,8 +18,8 @@ cors_headers = {
 }
 
 def send_email(recipient: str, subject: str, body: str) -> None:
-    sender = os.environ("EMAIL_USER")
-    password = os.environ("EMAIL_PASS")
+    sender = os.getenv("EMAIL_USER")
+    password = os.getenv("EMAIL_PASS")
     logging.info(f"Retrieved Information: Email = {sender}, Password = {password}")
     if not sender or not password:
         raise EnvironmentError("Missing EMAIL_USER or EMAIL_PASS environment variables")
@@ -68,6 +68,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         db = os.environ["SQL_DB"]
         table="[Narangba].[Feedback]"
         variables="[Name], [Feedback]"
+
+        logging.info(f"Collected Information: Username = {username}, Password = {password}, Server = {server}, DB = {db}")
 
         max_retries = 3
         for attempt in range(max_retries):
