@@ -4,6 +4,7 @@ import os
 import json
 import time
 import pymssql
+from send_email import send_email
 
 logging.info("📦 Deployed site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
 
@@ -63,6 +64,19 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     raise
 
         logging.info("✅ Feedback saved to SQL database")
+        try:
+            recipient=os.env["FEEDBACK_RECIPIENT"]
+            subject="New Feedback for Narangba Dashboard!"
+            body=("Hey," \
+            "" \
+            "Congratulations! Someone has uploaded some feedback into the Narangba Dashboard. You should go check it out!"
+            )
+
+            send_email(recipient, subject, body)
+            
+        except Exception as e:
+            logging.exception(f"❌ Error sending email: {e}")
+
     except Exception as e:
         logging.exception("❌ Database error")
         return func.HttpResponse(
