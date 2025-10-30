@@ -21,8 +21,8 @@ def send_email(recipient: str, subject: str, body: str) -> None:
     sender = os.getenv("FEEDBACK_EMAIL")
     eml_pass = os.getenv("FEEDBACK_PASS")
 
-    if not sender or not password:
-        logging.info(f"Email: {sender}, Pass: {password}")
+    if not sender or not eml_pass:
+        logging.info(f"Email: {sender}, Pass: {eml_pass}")
         raise EnvironmentError("Missing FEEDBACK_EMAIL or FEEDBACK_PASS environment variables")
 
     msg = EmailMessage()
