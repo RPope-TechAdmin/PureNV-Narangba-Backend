@@ -65,7 +65,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         logging.info("✅ Feedback saved to SQL database")
         try:
-            recipient=os.getenv["FEEDBACK_RECIPIENT"]
+            recipient="rpope@purenv.au"
             subject="New Feedback for Narangba Dashboard!"
             body=("Hey," \
             "" \
