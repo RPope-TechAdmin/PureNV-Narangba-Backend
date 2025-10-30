@@ -7,8 +7,8 @@ import pymssql
 import smtplib
 from email.message import EmailMessage
 
-sender = os.getenv("EMAIL_USER")
-password = os.getenv("EMAIL_PASS")
+sender = os.environ["EMAIL_USER"]
+password = os.environ["EMAIL_PASS"]
 logging.info(f"Retrieved Information: Email = {sender}, Password = {password}")
     
 logging.info("📦 Deployed site packages: %s", os.listdir('/home/site/wwwroot/.python_packages/lib/site-packages'))
