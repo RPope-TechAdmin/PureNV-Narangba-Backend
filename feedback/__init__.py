@@ -83,6 +83,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         for attempt in range(max_retries):
             try:
                 with pymssql.connect(server, username, password, db) as conn:
+                    logging.info(f"Connecting to Server {server} with DB {db}")
                     with conn.cursor() as cursor:
                         cursor.execute(f"INSERT INTO {table} ({variables}) VALUES (%s, %s);", (name, feedback))
                     conn.commit()
