@@ -197,11 +197,11 @@ TCLP_UNIT_MAP = {
         "standard_units": {"mg/kg"},
         "standard_field": ">C10 - C16 Fraction minus Naphthalene (F2)",
     },
-    ">C10 - C40 Fraction": {
+    ">C10 - C40 Fraction (sum)": {
         "tclp_units": {"mg/l", "µg/l"},
-        "tclp_field": "TCLP >C10 - C40 Fraction",
+        "tclp_field": "TCLP >C10 - C40 Fraction (sum)",
         "standard_units": {"mg/kg"},
-        "standard_field": ">C10 - C40 Fraction",
+        "standard_field": ">C10 - C40 Fraction (sum)",
     },
     ">C16 - C34 Fraction": {
         "tclp_units": {"mg/l", "µg/l"},
@@ -221,11 +221,11 @@ TCLP_UNIT_MAP = {
         "standard_units": {"mg/kg"},
         "standard_field": "C6 - C10 Fraction",
     },
-    "C6 - C10 Fraction minus BTEX (F1)": {
+    "C6 - C10 Fraction  minus BTEX (F1)": {
         "tclp_units": {"mg/l", "µg/l"},
-        "tclp_field": "TCLP C6 - C10 Fraction minus BTEX (F1)",
+        "tclp_field": "TCLP C6 - C10 Fraction  minus BTEX (F1)",
         "standard_units": {"mg/kg"},
-        "standard_field": "C6 - C10 Fraction minus BTEX (F1)",
+        "standard_field": "C6 - C10 Fraction  minus BTEX (F1)",
     },
     "Benzene": {
         "tclp_units": {"mg/l", "µg/l"},
