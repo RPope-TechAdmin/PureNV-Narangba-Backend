@@ -24,7 +24,7 @@ TABLE_FIELD_MAP = {
     "Fixation": {
         "File","Sample Date","Moisture Content","Arsenic","Cadmium","Chromium","Copper","Lead","Nickel","Zinc","TCLP Arsenic","TCLP Cadmium","TCLP Chromium","TCLP Copper","TCLP Lead","TCLP Nickel","TCLP Zinc","After HCl pH","Extraction Fluid Number","Final pH","Initial pH","ZHE Extraction Fluid Number"
         ,"C10 - C14 Fraction","TCLP C10 - C14 Fraction","C10 - C36 Fraction (sum)","TCLP C10 - C36 Fraction (sum)","C15 - C28 Fraction","TCLP C15 - C28 Fraction","C29 - C36 Fraction","TCLP C29 - C36 Fraction","C6 - C9 Fraction","TCLP C6 - C9 Fraction",">C10 - C16 Fraction","TCLP >C10 - C16 Fraction",">C10 - C16 Fraction minus Naphthalene (F2)"
-        ,"TCLP >C10 - C16 Fraction minus Naphthalene (F2)",">C10 - C40 Fraction (sum)","TCLP >C10 - C40 Fraction",">C16 - C34 Fraction","TCLP >C16 - C34 Fraction",">C34 - C40 Fraction","TCLP >C34 - C40 Fraction","C6 - C10 Fraction  minus BTEX (F1)","TCLP C6 - C10 Fraction  minus BTEX (F1)","C6 - C10 Fraction","TCLP C6 - C10 Fraction"
+        ,"TCLP >C10 - C16 Fraction minus Naphthalene (F2)",">C10 - C40 Fraction (sum)","TCLP >C10 - C40 Fraction (sum)",">C16 - C34 Fraction","TCLP >C16 - C34 Fraction",">C34 - C40 Fraction","TCLP >C34 - C40 Fraction","C6 - C10 Fraction  minus BTEX (F1)","TCLP C6 - C10 Fraction  minus BTEX (F1)","C6 - C10 Fraction","TCLP C6 - C10 Fraction"
         ,"Benzene","TCLP Benzene","Ethylbenzene","TCLP Ethylbenzene","meta- & para-Xylene","TCLP meta- & para-Xylene","Naphthalene","TCLP Naphthalene","ortho-Xylene","TCLP ortho-Xylene","Sum of BTEX","TCLP Sum of BTEX","Toluene","TCLP Toluene","Total Xylenes","TCLP Total Xylenes"
     },
     "Stormwater": {
@@ -97,7 +97,7 @@ TEST_CODES = {
         "After HCl pH", "Extraction Fluid Number" ,"Final pH","Initial pH"
     },
     "EN33Z": {
-        "Extraction Fluid Number"
+        "ZHE Extraction Fluid Number"
     },
     "EP080/071": {
         "C10 - C14 Fraction","C10 - C36 Fraction (sum)","C15 - C28 Fraction","C29 - C36 Fraction","C6 - C9 Fraction",">C10 - C16 Fraction",">C10 - C16 Fraction minus Naphthalene (F2)",">C10 - C40 Fraction (sum)",">C16 - C34 Fraction",
