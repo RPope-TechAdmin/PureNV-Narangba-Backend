@@ -500,7 +500,7 @@ def build_sql_insert(sample_records, project_table):
         if compound == "Extraction Fluid Number":
             if testcode == "EN33Z":
                 final_field = "ZHE Extraction Fluid Number"
-            else:
+            elif testcode == "EN33":
                 final_field = "Extraction Fluid Number"
         else:
             final_field = compound
