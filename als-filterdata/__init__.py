@@ -21,7 +21,7 @@ TABLE_FIELD_MAP = {
         ,"Sulfate as SO4 - Turbidimetric","Oil & Grease","C6 - C9 Fraction","C10 - C14 Fraction","C15 - C28 Fraction","C29 - C36 Fraction","C10 - C36 Fraction (sum)","C6 - C10 Fraction","C6 - C10 Fraction minus BTEX (F1)",">C10 - C16 Fraction",">C10 - C16 Fraction minus Naphthalene (F2)"
         ,">C16 - C34 Fraction",">C34 - C40 Fraction",">C10 - C40 Fraction (sum)","Benzene","Toluene","Ethylbenzene","meta- & para-Xylene","ortho-Xylene","Total Xylenes","Sum of BTEX","Naphthalene"
     },  
-    "Fixation": {
+    "Fixation 2025": {
         "File","Sample Date","Moisture Content","Arsenic","Cadmium","Chromium","Copper","Lead","Nickel","Zinc","TCLP Arsenic","TCLP Cadmium","TCLP Chromium","TCLP Copper","TCLP Lead","TCLP Nickel","TCLP Zinc","After HCl pH","Extraction Fluid Number","Final pH","Initial pH","ZHE Extraction Fluid Number"
         ,"C10 - C14 Fraction","TCLP C10 - C14 Fraction","C10 - C36 Fraction (sum)","TCLP C10 - C36 Fraction (sum)","C15 - C28 Fraction","TCLP C15 - C28 Fraction","C29 - C36 Fraction","TCLP C29 - C36 Fraction","C6 - C9 Fraction","TCLP C6 - C9 Fraction",">C10 - C16 Fraction","TCLP >C10 - C16 Fraction",">C10 - C16 Fraction minus Naphthalene (F2)"
         ,"TCLP >C10 - C16 Fraction minus Naphthalene (F2)",">C10 - C40 Fraction (sum)","TCLP >C10 - C40 Fraction (sum)",">C16 - C34 Fraction","TCLP >C16 - C34 Fraction",">C34 - C40 Fraction","TCLP >C34 - C40 Fraction","C6 - C10 Fraction  minus BTEX (F1)","TCLP C6 - C10 Fraction  minus BTEX (F1)","C6 - C10 Fraction","TCLP C6 - C10 Fraction"
@@ -489,6 +489,31 @@ def build_sql_insert(sample_records, project_table):
         compound = rec.get("Compound")
         result = rec.get("Result")
         units = (rec.get("Units") or "").strip().lower()
+        testcode = rec.get("TestCode", "").strip().upper()
+
+        if result in [None, ""]:
+            continue
+
+        # ----------------------------------------------------------------------
+        # PATCH: DIFFERENTIATE EN33 vs EN33Z FOR “Extraction Fluid Number”
+        # ----------------------------------------------------------------------
+        if compound == "Extraction Fluid Number":
+            if testcode == "EN33Z":
+                final_field = "ZHE Extraction Fluid Number"
+            else:
+                final_field = "Extraction Fluid Number"
+        else:
+            final_field = compound
+        # ----------------------------------------------------------------------
+
+        # --- EXISTING TCLP LOGIC APPLIES AFTER OVERRIDE ---
+        if final_field in TCLP_UNIT_MAP:
+            tclp_cfg = TCLP_UNIT_MAP[final_field]
+            if units in tclp_cfg["tclp_units"]:
+                final_field = tclp_cfg["tclp_field"]
+            elif units in tclp_cfg["standard_units"]:
+                final_field = tclp_cfg["standard_field"]
+            # else: do nothing, final_field stays the override
 
         if result in [None, ""]:
             continue
@@ -515,7 +540,7 @@ def build_sql_insert(sample_records, project_table):
     # Generate SQL
     field_list = ", ".join([f"[{f}]" for f in fields])
     value_list = ", ".join([values[f] for f in fields])
-    sql = f"INSERT INTO [Jackson].[{project_table}] ({field_list}) VALUES ({value_list});"
+    sql = f"INSERT INTO [Narangba].[{project_table}] ({field_list}) VALUES ({value_list});"
     return sql
 
 def process_lab_json(data, project_no=None, workorder_code=None):
