@@ -9,7 +9,7 @@ from docx import Document
 from pathlib import Path
 
 cors_headers = {
-    "Access-Control-Allow-Origin": "https://delightful-tree-0888c340f.1.azurestaticapps.net", 
+    "Access-Control-Allow-Origin": "https://victorious-pond-02e3be310.2.azurestaticapps.net", 
     "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
     "Access-Control-Allow-Headers": "Content-Type, Accept",
     "Access-Control-Max-Age": "86400"
@@ -30,100 +30,20 @@ TABLE_FIELD_MAP = {
     }
 }
 TEST_CODES = {
-    "EG035T": {
-        "Mercury"
-    },
-    "EP071SG": {
-        ">C10 - C16 Fraction",">C10 - C16 Fraction minus Naphthalene (F2)",">C10 - C40 Fraction (sum)",">C16 - C34 Fraction",">C34 - C40 Fraction","C10 - C14 Fraction","C10 - C36 Fraction (sum)"
-        "C15 - C28 Fraction","C29 - C36 Fraction"
-    },
-    "EG020A-T": {
-       " Arsenic","Cadmium","Chromium","Copper","Lead","Nickel","Zinc","Beryllium","Boron","Cobalt","Manganese","Selenium","Vanadium"
+    "EP071": {
+        ">C10 - C16 Fraction",">C10 - C16 Fraction minus Naphthalene (F2)",">C10 - C40 Fraction (sum)",">C16 - C34 Fraction",">C34 - C40 Fraction","C10 - C14 Fraction","C10 - C36 Fraction (sum)","C15 - C28 Fraction","C29 - C36 Fraction"
     },
     "EP080": {
-        "Benzene","C6 - C10 Fraction","C6 - C10 Fraction minus BTEX (F1)","C6 - C9 Fraction","Ethylbenzene","meta- & para-Xylene","Naphthalene","ortho-Xylene","Sum of BTEX","Toluene"
-        "Total Xylenes"
-    },
-    "EP075(SIM)": {
-        "2.4.5-Trichlorophenol","2.4.6-Trichlorophenol","2.4-Dichlorophenol","2.4-Dimethylphenol","2.6-Dichlorophenol","2-Chlorophenol","2-Methylphenol","2-Nitrophenol","3- & 4-Methylphenol"
-        "4-Chloro-3-methylphenol","Pentachlorophenol","Phenol","Sum of Phenols"
-    },
-    "EG020B-T": {
-        "Silver"
-    },
-    "MW006": {
-        "Escherichia coli"
-    },
-    "EP005"	: {
-        "Total Organic Carbon"
-    },
-    "EP231X": {
-        "10:2 Fluorotelomer sulfonic acid (10:2 FTS)","4:2 Fluorotelomer sulfonic acid (4:2 FTS)","6:2 Fluorotelomer sulfonic acid (6:2 FTS)","8:2 Fluorotelomer sulfonic acid (8:2 FTS)"
-        "N-Ethyl perfluorooctane sulfonamide (EtFOSA)","N-Ethyl perfluorooctane sulfonamidoacetic acid (EtFOSAA)","N-Ethyl perfluorooctane sulfonamidoethanol (EtFOSE)","N-Methyl perfluorooctane sulfonamide (MeFOSA)"
-        "N-Methyl perfluorooctane sulfonamidoacetic acid (MeFOSAA)","N-Methyl perfluorooctane sulfonamidoethanol (MeFOSE)","Perfluorobutane sulfonic acid (PFBS)","Perfluorobutanoic acid (PFBA)"
-        "Perfluorodecane sulfonic acid (PFDS)","Perfluorodecanoic acid (PFDA)","Perfluorododecanoic acid (PFDoDA)","Perfluoroheptane sulfonic acid (PFHpS)","Perfluoroheptanoic acid (PFHpA)"
-        "Perfluorohexane sulfonic acid (PFHxS)","Perfluorohexanoic acid (PFHxA)","Perfluorononanoic acid (PFNA)","Perfluorooctane sulfonamide (FOSA)","Perfluorooctane sulfonic acid (PFOS)"
-        "Perfluorooctanoic acid (PFOA)","Perfluoropentane sulfonic acid (PFPeS)","Perfluoropentanoic acid (PFPeA)","Perfluorotetradecanoic acid (PFTeDA)","Perfluorotridecanoic acid (PFTrDA)"
-        "Perfluoroundecanoic acid (PFUnDA)","Sum of PFAS","Sum of PFAS (WA DER List)","Sum of PFHxS and PFOS"
-    },
-    "EP040": {
-        "Total Organic Fluorine"	
-
-    },
-    "EA025H": {
-        "Suspended Solids (SS)"
-    },
-    "EA055": {
-        "Moisture Content"
-    },
-    "EG005T": {
-        "Arsenic","Cadmium","Chromium","Copper","Lead","Nickel","Zinc"
-    },
-    "EP071SG-S": {
-        ">C10 - C16 Fraction",">C10 - C16 Fraction minus Naphthalene (F2)",">C10 - C40 Fraction (sum)",">C16 - C34 Fraction",">C34 - C40 Fraction","C10 - C14 Fraction","C10 - C36 Fraction (sum)"
-        "C15 - C28 Fraction","C29 - C36 Fraction"
-    },
-    "EA002": {
-        "pH Value"
-    },
-    "EG048G": {
-        "Hexavalent Chromium"
-    },
-    "EG049G-Alk": {
-        "Trivalent Chromium"
-    },
-    "EG020X-T": {
-        "Arsenic"
-    },
-    "ED093S": {
-        "Calcium","Magnesium","Potassium","Sodium"
-    },
-    "ED091": {
-        "Boron"
-    },
-    "EA014": {
-        "Total Soluble Salts"
-    },
-    "EN34": {
-        "pH Value"
+        "Benzene","C6 - C10 Fraction","C6 - C10 Fraction minus BTEX (F1)","C6 - C9 Fraction","Ethylbenzene","meta- & para-Xylene","Naphthalene","ortho-Xylene","Sum of BTEX","Toluene","Total Xylenes"
     },
     "EA005-P": {
         "pH Value"
     },
-    "EG049G-T": {
-        "Trivalent Chromium"
-    },
-    "EG050G-T": {
-        "Hexavalent Chromium"
-    },
-    "ED093F": {
-        "Calcium","Magnesium","Potassium","Sodium"
+    "EG020A-T": {
+        "Arsenic","Iron","Zinc"
     },
     "EA015H": {
         "Total Dissolved Solids @180°C"
-    },
-    "EP030": {
-        "Biochemical Oxygen Demand"
     },
     "EK067G": {
         "Total Phosphorus as P"
@@ -135,35 +55,222 @@ TEST_CODES = {
         "Total Kjeldahl Nitrogen as N"
     },
     "EK059G": {
-        "Nitrite + Nitrate as N"
+        "Nitrite + Nitrate as N", "Nitrite + Nitrate as N (Sol.)"   
     },
-    "EP071": {
-        ">C10 - C16 Fraction",">C10 - C16 Fraction minus Naphthalene (F2)",">C10 - C40 Fraction (sum)",">C16 - C34 Fraction",">C34 - C40 Fraction","C10 - C14 Fraction","C10 - C36 Fraction (sum)"
-        "C15 - C28 Fraction","C29 - C36 Fraction"
+    "EP005"	: {
+        "Total Organic Carbon"
     },
-    "EP231X (TOP)": {
-        "Perfluorobutane sulfonic acid (PFBS)","Perfluorohexane sulfonic acid (PFHxS)","Perfluorooctane sulfonic acid (PFOS)","Perfluorobutanoic acid (PFBA)","Perfluorohexanoic acid (PFHxA)"
-        "Perfluorooctanoic acid (PFOA)","Perfluorodecanoic acid (PFDA)","Perfluorododecanoic acid (PFDoDA)","Perfluorotetradecanoic acid (PFTeDA)","N-Methyl perfluorooctane sulfonamide (MeFOSA)"
-        "N-Methyl perfluorooctane sulfonamidoethanol (MeFOSE)","N-Methyl perfluorooctane sulfonamidoacetic acid (MeFOSAA)","4:2 Fluorotelomer sulfonic acid (4:2 FTS)","8:2 Fluorotelomer sulfonic acid (8:2 FTS)"
-        "Sum of PFAS","Sum of TOP C4 - C14 Carboxylates and C4 - C8 Sulfonates","Perfluoropentane sulfonic acid (PFPeS)","Perfluoroheptane sulfonic acid (PFHpS)","Perfluorodecane sulfonic acid (PFDS)"
-        "Perfluoropentanoic acid (PFPeA)","Perfluoroheptanoic acid (PFHpA)","Perfluorononanoic acid (PFNA)","Perfluoroundecanoic acid (PFUnDA)","Perfluorotridecanoic acid (PFTrDA)","Perfluorooctane sulfonamide (FOSA)"
-        "N-Ethyl perfluorooctane sulfonamide (EtFOSA)","N-Ethyl perfluorooctane sulfonamidoethanol (EtFOSE)","N-Ethyl perfluorooctane sulfonamidoacetic acid (EtFOSAA)","6:2 Fluorotelomer sulfonic acid (6:2 FTS)"
-        "10:2 Fluorotelomer sulfonic acid (10:2 FTS)","Sum of PFHxS and PFOS","Sum of TOP C4 - C14 as Fluorine"
+    "EA025H": {
+        "Suspended Solids (SS)"
     },
+    "EA055": {
+        "Moisture Content"
+    },
+    "EG005(ED093)T": {
+        "Arsenic","Cadmium","Chromium","Copper","Lead","Nickel","Zinc"
+    },
+    "EP026-P": {
+        "Chemical Oxygen Demand"
+    },
+    "EA010-P": {
+        "Electrical Conductivity @ 25°C"
+    },
+    "EP020": {
+        "Oil & Grease"
+    },
+    "ED041G": {
+        "Sulfate as SO4 - Turbidimetric"
+    },
+    "EA045": {
+        "Turbidity"
+    },
+    "EG005(ED093)T": {
+        "Arsenic","Cadmium","Chromium","Copper","Lead","Nickel","Zinc"
+    },
+    "EG020T": {
+        "Arsenic","Cadmium","Chromium","Copper","Lead","Nickel","Zinc"
+    },
+    "EN33": {
+        "After HCl pH", "Extraction Fluid Number" ,"Final pH","Initial pH"
+    },
+    "EN33Z": {
+        "Extraction Fluid Number"
+    },
+    "EP080/071": {
+        "C10 - C14 Fraction","C10 - C36 Fraction (sum)","C15 - C28 Fraction","C29 - C36 Fraction","C6 - C9 Fraction",">C10 - C16 Fraction",">C10 - C16 Fraction minus Naphthalene (F2)",">C10 - C40 Fraction (sum)",">C16 - C34 Fraction",
+        ">C34 - C40 Fraction","C6 - C10 Fraction  minus BTEX (F1)","C6 - C10 Fraction"
+    }
 }
 
 PROJECT_MAP = {
-    "Drill Mud Liquids":"DML",
-    "Drill Mud Solids": "DMS",
-    "Dust Suppression": "Dust Suppression",
-    "Environmental Creek Testing": "Environmental Creek",
-    "PFAS Solid/Liquid": "PFAS Solid/Liquid",
-    "SBR Irr": "Irrigation",
-    "Spadable Samples": "Spadable",
+    "Fixation Process":"Fixation",
+    "RM10": "Trade Waste",
     "Stormwater": "Stormwater",
-    "Treated Effluent": "TreatedEffluent",
-    "BR project": "BioRemediation",
-    "BR Project": "BioRemediation"
+}
+
+TCLP_UNIT_MAP = {
+    "Arsenic": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP Arsenic",
+        "standard_units": {"mg/kg"},
+        "standard_field": "Arsenic",
+    },
+    "Cadmium": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP Cadmium",
+        "standard_units": {"mg/kg"},
+        "standard_field": "Cadmium",
+    },
+    "Chromium": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP Chromium",
+        "standard_units": {"mg/kg"},
+        "standard_field": "Chromium",
+    },
+    "Copper": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP Copper",
+        "standard_units": {"mg/kg"},
+        "standard_field": "Copper",
+    },
+    "Lead": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP Lead",
+        "standard_units": {"mg/kg"},
+        "standard_field": "Lead",
+    },
+    "Nickel": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP Nickel",
+        "standard_units": {"mg/kg"},
+        "standard_field": "Nickel",
+    },
+    "Zinc": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP Zinc",
+        "standard_units": {"mg/kg"},
+        "standard_field": "Zinc",
+    },
+    "C10 - C14 Fraction": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP C10 - C14 Fraction",
+        "standard_units": {"mg/kg"},
+        "standard_field": "C10 - C14 Fraction",
+    },
+    "C10 - C36 Fraction (sum)": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP C10 - C36 Fraction (sum)",
+        "standard_units": {"mg/kg"},
+        "standard_field": "C10 - C36 Fraction (sum)",
+    },
+    "C15 - C28 Fraction": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP C15 - C28 Fraction",
+        "standard_units": {"mg/kg"},
+        "standard_field": "C15 - C28 Fraction",
+    },
+    "C29 - C36 Fraction": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP C29 - C36 Fraction",
+        "standard_units": {"mg/kg"},
+        "standard_field": "C29 - C36 Fraction",
+    },
+    "C6 - C9 Fraction": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP C6 - C9 Fraction",
+        "standard_units": {"mg/kg"},
+        "standard_field": "C6 - C9 Fraction",
+    },
+    ">C10 - C16 Fraction": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP >C10 - C16 Fraction",
+        "standard_units": {"mg/kg"},
+        "standard_field": ">C10 - C16 Fraction",
+    },
+    ">C10 - C16 Fraction minus Naphthalene (F2)": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP >C10 - C16 Fraction minus Naphthalene (F2)",
+        "standard_units": {"mg/kg"},
+        "standard_field": ">C10 - C16 Fraction minus Naphthalene (F2)",
+    },
+    ">C10 - C40 Fraction": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP >C10 - C40 Fraction",
+        "standard_units": {"mg/kg"},
+        "standard_field": ">C10 - C40 Fraction",
+    },
+    ">C16 - C34 Fraction": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP >C16 - C34 Fraction",
+        "standard_units": {"mg/kg"},
+        "standard_field": ">C16 - C34 Fraction",
+    },
+    ">C34 - C40 Fraction": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP >C34 - C40 Fraction",
+        "standard_units": {"mg/kg"},
+        "standard_field": ">C34 - C40 Fraction",
+    },
+    "C6- C10 Fraction": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP C6- C10 Fraction",
+        "standard_units": {"mg/kg"},
+        "standard_field": "C6- C10 Fraction",
+    },
+    "C6- C10 Fraction minus BTEX (F1)": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP C6- C10 Fraction minus BTEX (F1)",
+        "standard_units": {"mg/kg"},
+        "standard_field": "C6- C10 Fraction minus BTEX (F1)",
+    },
+    "Benzene": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP Benzene",
+        "standard_units": {"mg/kg"},
+        "standard_field": "Benzene",
+    },
+    "Toluene": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP Toluene",
+        "standard_units": {"mg/kg"},
+        "standard_field": "Toluene",
+    },
+    "Ethylbenzene": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP Ethylbenzene",
+        "standard_units": {"mg/kg"},
+        "standard_field": "Ethylbenzene",
+    },
+    "meta- & para-Xylene": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP meta- & para-Xylene",
+        "standard_units": {"mg/kg"},
+        "standard_field": "meta- & para-Xylene",
+    },
+    "Naphthalene": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP Naphthalene",
+        "standard_units": {"mg/kg"},
+        "standard_field": "Naphthalene",
+    },
+    "ortho-Xylene": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP ortho-Xylene",
+        "standard_units": {"mg/kg"},
+        "standard_field": "ortho-Xylene",
+    },
+    "Sum of BTEX": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP Sum of BTEX",
+        "standard_units": {"mg/kg"},
+        "standard_field": "Sum of BTEX",
+    },
+    "Total Xylenes": {
+        "tclp_units": {"mg/l", "µg/l"},
+        "tclp_field": "TCLP Total Xylenes",
+        "standard_units": {"mg/kg"},
+        "standard_field": "Total Xylenes",
+    },
 }
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -377,8 +484,29 @@ def build_sql_insert(sample_records, project_table):
     for rec in sample_records:
         compound = rec.get("Compound")
         result = rec.get("Result")
-        if compound in fields and result not in [None, ""]:
-            values[compound] = f"{result}"
+        units = (rec.get("Units") or "").strip().lower()
+
+        if result in [None, ""]:
+            continue
+
+        # --- NEW UNIT-BASED LOGIC ---
+        if compound in TCLP_UNIT_MAP:
+            tclp_cfg = TCLP_UNIT_MAP[compound]
+
+            if units in tclp_cfg["tclp_units"]:
+                final_field = tclp_cfg["tclp_field"]
+            elif units in tclp_cfg["standard_units"]:
+                final_field = tclp_cfg["standard_field"]
+            else:
+                # If units unknown → fallback to normal compound name
+                final_field = compound
+        else:
+            # not in unit-sensitive list
+            final_field = compound
+
+        # Only store value if the resulting mapped field actually exists in the table
+        if final_field in fields:
+            values[final_field] = f"{result}"
 
     # Generate SQL
     field_list = ", ".join([f"[{f}]" for f in fields])
