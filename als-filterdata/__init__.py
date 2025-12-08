@@ -104,6 +104,7 @@ TEST_CODES = {
 
 PROJECT_MAP = {
     "Fixation Process":"Fixation",
+    "FIXATION PROCESS":"Fixation",
     "RM10": "Trade Waste",
     "Stormwater": "Stormwater",
 }
