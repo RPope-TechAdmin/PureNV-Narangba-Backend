@@ -434,8 +434,8 @@ def main(timer: func.TimerRequest) -> None:
         def connect_with_fallback(timeout_seconds: int = 60) -> pyodbc.Connection:
             sql_server= os.environ["SQL_SERVER"]
             sql_database= os.environ["SQL_DB_LAB"]
-            sql_username= os.environ["SQL_USER"]
-            sql_password= os.environ["SQL_PASSWORD"]
+            sql_username= os.environ["SQL_LAB_USER"]
+            sql_password= os.environ["SQL_LAB_PASSWORD"]
             """
             Try ODBC Driver 18 then 17. Increase Connection Timeout and retry a few times
             (useful if Azure SQL Serverless is resuming).
