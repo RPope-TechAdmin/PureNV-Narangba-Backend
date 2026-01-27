@@ -107,8 +107,8 @@ TEST_CODES = {
 }
 
 PROJECT_MAP = {
-    "Fixation Process":"Fixation",
-    "FIXATION PROCESS":"Fixation",
+    "Fixation Process":"Fixation 2025",
+    "FIXATION PROCESS":"Fixation 2025",
     "RM10": "Trade Waste",
     "Stormwater": "Stormwater",
 }
@@ -289,7 +289,7 @@ def main(timer: func.TimerRequest) -> None:
         password = os.environ["API_PASSWORD"]
 
         # === Set parameters for timer trigger ===
-        from_days_ago = 21  # Fetch data from the last 7 days
+        from_days_ago = 7  # Fetch data from the last 7 days
         project_no = None
         workorder_code = None
 
