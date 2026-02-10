@@ -557,7 +557,8 @@ def build_sql_insert(sample_records, project_table):
 
         # Only store value if the resulting mapped field actually exists in the table
         if final_field in fields:
-            values[final_field] = f"{result}"
+            clean_result = str(result).replace("~", "").replace("<", "")
+            values[compound] = f"{clean_result}"
 
     # Generate SQL
     field_list = ", ".join([f"[{f}]" for f in fields])
