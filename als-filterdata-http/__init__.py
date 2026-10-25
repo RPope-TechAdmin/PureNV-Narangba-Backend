@@ -108,6 +108,7 @@ TEST_CODES = {
 
 PROJECT_MAP = {
     "Fixation Process":"Fixation 2025",
+    " Fixation Process":"Fixation 2025",
     "FIXATION PROCESS":"Fixation 2025",
     "RM10": "Trade Waste",
     "Stormwater": "Stormwater",
