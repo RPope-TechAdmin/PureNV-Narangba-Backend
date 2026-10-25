@@ -289,7 +289,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         password = os.environ["API_PASSWORD"]
 
         # === Get request parameters ===
-        from_days_ago = 7
+        from_days_ago = 20
         project_no = None
         workorder_code = None
 
