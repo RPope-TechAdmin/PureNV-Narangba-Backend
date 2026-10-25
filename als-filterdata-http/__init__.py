@@ -288,17 +288,25 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         username = os.environ["API_USERNAME"]
         password = os.environ["API_PASSWORD"]
 
-        # === Set parameters for timer trigger ===
-        from_days_ago = 21  # Fetch data from the last 7 days
+        # === Get request parameters ===
+        from_days_ago = 7
         project_no = None
         workorder_code = None
 
-        # Default: last 7 days, page=1
-        to_dt = datetime.utcnow()
+        to_dt = datetime.now(timezone.utc)
         from_dt = to_dt - timedelta(days=from_days_ago)
         from_param = from_dt.strftime("%Y/%m/%d %H:%M:%S.000Z")
         to_param = to_dt.strftime("%Y/%m/%d %H:%M:%S.000Z")
-        
+
+        logging.info(
+            "ALS fetch window: from_days_ago=%s from_utc=%s to_utc=%s "
+            "from_param=%s to_param=%s",
+            from_days_ago,
+            from_dt.isoformat(),
+            to_dt.isoformat(),
+            from_param,
+            to_param,
+        )        
         # TODO: Implement pagination if more than one page of results is expected
         page_param = "16"
 
@@ -358,21 +366,87 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         # First request (page 1)
         params = {"From": from_param, "To": to_param, "Page": str(current_page)}
-        data_headers = {"Accept": "application/json", "Authorization": f"Bearer {token}"}
+        data_headers = {
+            "Accept": "application/json",
+            "Authorization": f"Bearer {token}",
+        }
 
-        logging.info(f"Fetching page {current_page}...")
+        logging.info(
+            "Fetching ALS page %s with From=%s To=%s",
+            current_page, from_param, to_param
+        )
 
+        started = time.monotonic()
         resp = requests.get(data_url, headers=data_headers, params=params, timeout=60)
+        logging.info("ALS request URL: %s", resp.url)
+        elapsed = time.monotonic() - started
+
+        logging.info(
+            "ALS page response: page=%s status=%s elapsed_seconds=%.2f response_bytes=%s",
+            current_page, resp.status_code, elapsed, len(resp.content)
+        )
+
         if resp.status_code == 401:
+            logging.warning(
+                "ALS page %s returned 401 with Bearer token; retrying alternate auth format.",
+                current_page
+            )
             data_headers["Authorization"] = token
+
+            started = time.monotonic()
             resp = requests.get(data_url, headers=data_headers, params=params, timeout=60)
+            logging.info("ALS request URL: %s", resp.url)
+            elapsed = time.monotonic() - started
+
+            logging.info(
+                "ALS retry response: page=%s status=%s elapsed_seconds=%.2f response_bytes=%s",
+                current_page, resp.status_code, elapsed, len(resp.content)
+            )
 
         resp.raise_for_status()
-        data_json = resp.json()
 
-        # Extract page 1's data
+        try:
+            data_json = resp.json()
+        except ValueError:
+            logging.exception(
+                "ALS response was not valid JSON: status=%s content_type=%s",
+                resp.status_code,
+                resp.headers.get("Content-Type"),
+            )
+            raise
+
+        # Extract only after the raw response has been captured.
         page_records = extract_records(data_json)
+        logging.info("ALS page %s extracted records: %s", current_page, len(page_records))
+
+        logging.info(
+            "Page 1: extracted=%s total_pages=%r total_count=%r page_size=%r",
+            len(page_records),
+            data_json.get("TotalPages") if isinstance(data_json, dict) else None,
+            data_json.get("TotalCount") if isinstance(data_json, dict) else None,
+            data_json.get("PageSize") if isinstance(data_json, dict) else None,
+        )
+        logging.info("ALS page 1 extracted records: %s", len(page_records))
         all_records.extend(page_records)
+
+        if isinstance(data_json, dict):
+            logging.info(
+                "ALS pagination metadata: TotalPages=%r totalPages=%r Pages=%r "
+                "TotalCount=%r totalCount=%r Count=%r PageSize=%r pageSize=%r",
+                data_json.get("TotalPages"),
+                data_json.get("totalPages"),
+                data_json.get("Pages"),
+                data_json.get("TotalCount"),
+                data_json.get("totalCount"),
+                data_json.get("Count"),
+                data_json.get("PageSize"),
+                data_json.get("pageSize"),
+            )
+        logging.info(
+            "Page %s: extracted=%s",
+            current_page,
+            len(page_records),
+        )
 
         # Determine total pages
         total_pages = (
@@ -405,37 +479,107 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         # Fetch remaining pages
         for current_page in range(2, int(total_pages) + 1):
-            logging.info(f"Fetching page {current_page}...")
-
             params["Page"] = str(current_page)
+
+            logging.info(
+                "Fetching ALS page %s with From=%s To=%s",
+                current_page, from_param, to_param
+            )
+
+            started = time.monotonic()
             resp = requests.get(data_url, headers=data_headers, params=params, timeout=60)
+            elapsed = time.monotonic() - started
+
+            logging.info(
+                "ALS page response: page=%s status=%s elapsed_seconds=%.2f response_bytes=%s",
+                current_page, resp.status_code, elapsed, len(resp.content)
+            )
+
             if resp.status_code == 401:
+                logging.warning(
+                    "ALS page %s returned 401; retrying alternate auth format.",
+                    current_page
+                )
                 data_headers["Authorization"] = token
                 resp = requests.get(data_url, headers=data_headers, params=params, timeout=60)
 
             resp.raise_for_status()
-            page_json = resp.json()
+
+            try:
+                page_json = resp.json()
+            except ValueError:
+                logging.exception("ALS page %s returned a non-JSON response.", current_page)
+                raise
+
+            if os.getenv("CAPTURE_ALS_RESPONSE", "false").lower() == "true":
+                debug_dir = Path(tempfile.gettempdir()) / "als_debug"
+                debug_dir.mkdir(parents=True, exist_ok=True)
+
+                debug_file = debug_dir / f"als_{run_id}_page_{current_page}.json"
+                debug_file.write_text(
+                    json.dumps(page_json, indent=2, default=str),
+                    encoding="utf-8",
+                )
+
+                logging.info(
+                    "Saved raw ALS page: run_id=%s page=%s bytes=%s filename=%s",
+                    run_id,
+                    current_page,
+                    debug_file.stat().st_size,
+                    debug_file.name,
+                )
 
             page_records = extract_records(page_json)
+            logging.info(
+                "ALS page extracted records: page=%s count=%s",
+                current_page, len(page_records)
+            )
             all_records.extend(page_records)
 
-        logging.info(f"Total combined records fetched: {len(all_records)}")
+        logging.info("Total combined records fetched: %s", len(all_records))
+
+        date_examples = []
+        for rec in all_records:
+            if not isinstance(rec, dict):
+                continue
+
+            date_value = (
+                rec.get("AnalysisDate")
+                or rec.get("DateReleased")
+                or rec.get("SampleDate")
+            )
+            if date_value:
+                date_examples.append(str(date_value))
+
+        logging.info(
+            "ALS date-field examples: dated_records=%s first_values=%s",
+            len(date_examples),
+            date_examples[:10],
+        )
 
         # Replace old sample_records with combined data
         sample_records = all_records
 
         # === Step 3: Process data and generate SQL ===
+        logging.info("Starting processing: input_record_count=%s", len(sample_records))
+
         sql_statements = process_lab_json(
             sample_records,
             project_no=project_no,
             workorder_code=workorder_code
         )
 
+        logging.info(
+            "Processing complete: input_record_count=%s sql_statement_count=%s",
+            len(sample_records),
+            len(sql_statements),
+        )
+        
         def connect_with_fallback(timeout_seconds: int = 60) -> pyodbc.Connection:
             sql_server= os.environ["SQL_SERVER"]
             sql_database= os.environ["SQL_DB_LAB"]
-            sql_username= os.environ["SQL_LAB_USER"]
-            sql_password= os.environ["SQL_LAB_PASSWORD"]
+            sql_username= os.environ["SQL_USER"]
+            sql_password= os.environ["SQL_PASSWORD"]
             """
             Try ODBC Driver 18 then 17. Increase Connection Timeout and retry a few times
             (useful if Azure SQL Serverless is resuming).
@@ -464,7 +608,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             # If we get here, all attempts failed
             raise last_exc
         
-        # === Step 4: Generate SQL File  ===
+        # === Step 4: Return SQL file ===
         sql_content = "\n".join(sql_statements)
         filename = f"lab_data_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.sql"
 
@@ -476,7 +620,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             }
         )
     except Exception as e:
-        logging.error(f"Error: {e}")
+        logging.exception("Lab data request failed")
         return func.HttpResponse(
             json.dumps({"error": str(e)}),
             mimetype="application/json",
@@ -495,10 +639,22 @@ def build_sql_insert(sample_records, project_table):
         logging.warning(f"No field mapping for table {project_table}")
         return None
 
+    if not sample_records:
+        logging.warning(
+            "No records supplied to build_sql_insert for table=%s",
+            project_table,
+        )
+        return None
+
     first_record = sample_records[0]
     values = {field: "NULL" for field in fields}
     logging.info(f"Type of first_record in build_sql_insert: {type(first_record)}")
-    logging.info(f"First record content: {str(first_record)[:500]}")
+    logging.debug(
+        "First record fields: keys=%s sample_date=%r sample_id=%r",
+        list(first_record.keys()),
+        first_record.get("SampleDate"),
+        first_record.get("SampleID1"),
+    )
 
     # Static fields
     if "File" in fields:
@@ -525,14 +681,25 @@ def build_sql_insert(sample_records, project_table):
         units = (rec.get("Units") or "").strip().lower()
         code = rec.get("AnalysisMethod")
 
+        if isinstance(result, str) and "<" in result:
+            result = "NULL"
+
         if result in [None, ""]:
             continue
 
         # --- NEW UNIT-BASED LOGIC ---
-        if compound in TCLP_UNIT_MAP:
+        # --- APPLY TCLP LOGIC ONLY FOR FIXATION ---
+        if project_table == "Fixation" and compound in TCLP_UNIT_MAP:
             tclp_cfg = TCLP_UNIT_MAP[compound]
 
-            if units in tclp_cfg["tclp_units"]:
+            if units in {u.lower() for u in tclp_cfg["tclp_units"]}:
+                final_field = tclp_cfg["tclp_field"]
+            elif units in {u.lower() for u in tclp_cfg["standard_units"]}:
+                final_field = tclp_cfg["standard_field"]
+            else:
+                final_field = compound
+
+            if units in {u.lower() for u in tclp_cfg["tclp_units"]}:
                 final_field = tclp_cfg["tclp_field"]
             elif units in tclp_cfg["standard_units"]:
                 final_field = tclp_cfg["standard_field"]
@@ -550,13 +717,12 @@ def build_sql_insert(sample_records, project_table):
 
         # Only store value if the resulting mapped field actually exists in the table
         if final_field in fields:
-            clean_result = str(result).replace("~", "").replace("<", "")
-            values[compound] = f"{clean_result}"
+            values[final_field] = f"{result}"
 
     # Generate SQL
     field_list = ", ".join([f"[{f}]" for f in fields])
     value_list = ", ".join([values[f] for f in fields])
-    sql = f"INSERT INTO [Narangba].[{project_table}] ({field_list}) VALUES ({value_list});"
+    sql = f"INSERT INTO [Wacol].[{project_table}] ({field_list}) VALUES ({value_list});"
     return sql
 
 def process_lab_json(data, project_no=None, workorder_code=None):
@@ -577,7 +743,7 @@ def process_lab_json(data, project_no=None, workorder_code=None):
         """Normalize for reliable matching."""
         if val is None:
             return ""
-        return str(val).strip().lower().replace("(", "").replace(")", "").replace("<", "").replace(">", "").replace("~", "")
+        return str(val).strip().lower().replace("(", "").replace(")", "")
 
     pn = norm(project_no)
     wo = norm(workorder_code)
@@ -600,7 +766,7 @@ def process_lab_json(data, project_no=None, workorder_code=None):
     for rec in filtered:
         key = (rec.get("Submission"), rec.get("SampleID1"), rec.get("SampleDate"))
         grouped.setdefault(key, []).append(rec)
-
+        logging.info("Grouped sample count: %s", len(grouped))
     sql_statements = []
 
     # PATCH A — determine project table **per group**
@@ -608,6 +774,12 @@ def process_lab_json(data, project_no=None, workorder_code=None):
 
         record_project = records[0].get("ProjectNo") or records[0].get("Site")
         project_table = PROJECT_MAP.get(record_project)
+        logging.info(
+            "Processing group: project=%r table=%r record_count=%s",
+            record_project,
+            project_table,
+            len(records),
+        )
 
         if not project_table:
             logging.warning(f"No project table found for project: {record_project}")
